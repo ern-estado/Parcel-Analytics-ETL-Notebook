@@ -1,0 +1,8 @@
+pyspark
+findspark
+pandas
+matplotlib
+seaborn
+jsonschema
+great_expectations
+ipykernel
