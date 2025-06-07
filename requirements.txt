@@ -1,8 +1,6 @@
-pyspark
-findspark
-pandas
-matplotlib
-seaborn
-jsonschema
-great_expectations
-ipykernel
+pyspark==3.4.1
+pandas==2.0.3
+matplotlib==3.8.0
+ipython==8.14.0
+ipykernel==6.25.0
+jupyter==1.0.0
