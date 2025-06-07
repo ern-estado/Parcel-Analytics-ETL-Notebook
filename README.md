@@ -37,7 +37,7 @@ Sure! Here’s a separate **Data Model** section you can add to the README, with
 
 The data model closely follows the hierarchy and structure of the original JSON source files. It consists of one fact table and several dimension tables designed to enable efficient analysis of parcel shipping events.
 
-<iframe width="560" height="315" src='https://dbdiagram.io/e/684423b55a9a94714e537852/68443d915a9a94714e554a8c'></iframe>
+![Inpost](https://github.com/user-attachments/assets/98960a65-0ecc-48c0-aebd-884309112feb)
 
 ### Key Tables:
 
