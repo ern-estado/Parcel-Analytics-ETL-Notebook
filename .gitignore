@@ -3,11 +3,22 @@ __pycache__/
 *.py[cod]
 *$py.class
 
+# Ignore data files
+*.csv
+*.parquet
+*.log
+*.db
+
+# Ignore notebook checkpoints
+.ipynb_checkpoints/
+
+# VS Code/Codespace stuff
+.vscode/
+*.code-workspace
+
+
 # C extensions
 *.so
-
-# Data input
-*.csv
 
 # Distribution / packaging
 .Python
