@@ -18,7 +18,7 @@ To meet these requirements, the following technical choices were made:
 * **Parquet** file format is used for all final data tables, fact and dims. Parquet’s columnar storage leads to faster read/write speeds and efficient storage, which are critical for big data workloads.
 
 
-## Project Structure
+## Repo Structure
 
 * `/notebooks/`
   Contains the main Jupyter notebook `main_report.ipynb` which performs metric calculations and visualizes results.
@@ -29,8 +29,6 @@ To meet these requirements, the following technical choices were made:
 * `/etl/`
   Includes the `main.py` script responsible for parsing raw source data, transforming it, and building the dimension and fact tables in the warehouse.
 
-
-Sure! Here’s a separate **Data Model** section you can add to the README, with the embedded diagram and explanation:
 
 
 ## Data Model
