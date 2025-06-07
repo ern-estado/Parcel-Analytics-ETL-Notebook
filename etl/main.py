@@ -1,24 +1,29 @@
+#THIS IS THE MAIN ETL 
+# parses source json csv, applies schema to fact and dims as per data model
+# runs simple dq checks before parsing, after parsing, and after building tables - stores dq report in metadata
+# builds fact and dims in parquet 
+# tables are then analysed in notebooks/report.ipynb
+
 from pyspark.sql import SparkSession
 from pyspark.sql.functions import (
-    col, from_json, lit, year, month, dayofmonth, quarter, dayofweek, to_date, concat_ws, expr
-)
+    col, from_json, lit, year, month, dayofmonth, quarter, dayofweek, to_date, concat_ws, expr)
 from pyspark.sql.types import *
 import pandas as pd
 import os
 from datetime import datetime
 
-# === Initialize Spark ===
+#START SPARK SESSION
 spark = SparkSession.builder \
     .appName("Fact and Dim Tables Builder with UUIDs and DQ") \
     .getOrCreate()
 
-# === Function to run data quality checks and collect results ===
+# dq checks functions setup
 def run_dq_checks(df, check_point_name):
     checks = []
     ts = datetime.now().strftime("%Y-%m-%d %H:%M:%S")
     total_count = df.count()
 
-    # Basic check: non-empty dataframe
+    # non-empty dataframe check
     if total_count > 0:
         checks.append({
             "check_point": check_point_name,
@@ -36,7 +41,7 @@ def run_dq_checks(df, check_point_name):
             "timestamp": ts
         })
 
-    # Example: check for nulls in key columns (pick first 3 columns to check for nulls)
+    # check for nulls in key columns (picked on 3 columns)
     cols_to_check = df.columns[:3]
     for c in cols_to_check:
         null_count = df.filter(col(c).isNull()).count()
@@ -60,13 +65,13 @@ def run_dq_checks(df, check_point_name):
     return checks
 
 
-# === Paths ===
+### paths to read source json and write fact, dims, and dq report
 input_path = "/workspaces/inpost_analytics/input/Dane_zadanie_rekrutacyjne.csv"
 metadata_path = "/workspaces/inpost_analytics/etl/metadata/dq_report.csv"
 output_base_parquet = "/workspaces/inpost_analytics/pipeline"
 output_base_csv = "/workspaces/inpost_analytics/warehouse"
 
-# === Read raw CSV with embedded JSON ===
+### JSON PARSER SETUP
 df = spark.read.option("header", True) \
                .option("escape", '"') \
                .option("multiLine", True) \
@@ -74,10 +79,10 @@ df = spark.read.option("header", True) \
                .option("sep", ",") \
                .csv(input_path)
 
-# Run DQ checks on raw data before parsing
+# 1st dq check before parsing
 dq_results = run_dq_checks(df, "Before Parsing")
 
-# === Define JSON schema ===
+### JSON SCHEMA SETUP
 event_schema = StructType([
     StructField("event_code", StringType()),
     StructField("event_date", TimestampType()),
@@ -119,13 +124,13 @@ event_schema = StructType([
     ]))
 ])
 
-# === Parse JSON column ===
+# parse json column
 df_parsed = df.withColumn("event_json", from_json(col("event"), event_schema))
 
-# Run DQ checks after parsing
+# dq checks after parsed
 dq_results += run_dq_checks(df_parsed, "After Parsing")
 
-# === Flatten JSON ===
+### FLATTENS JSON BEFORE FACT AND DIMS BUILD
 df_flat = df_parsed.select(
     col("event_json.event_code").alias("event_code"),
     col("event_json.event_sub_code").alias("event_sub_code"),
@@ -155,7 +160,7 @@ df_flat = df_parsed.select(
     col("event_json.shipping.state.sousCode").alias("state_subcode")
 )
 
-# === Build DimClient ===
+# DIM CLIENT
 from pyspark.sql.functions import concat_ws
 
 dim_client = df_flat.select(
@@ -166,7 +171,7 @@ dim_client = df_flat.select(
  .dropDuplicates(["client_key"]) \
  .withColumn("client_id", expr("uuid()"))
 
-# === Build DimLocation ===
+# DIM LOCATION
 collection_location = df_flat.select(
     col("collection_codeAgence").alias("codeAgence"),
     col("collection_pays").alias("pays"),
@@ -183,7 +188,7 @@ dim_location = collection_location.union(delivery_location) \
     .dropDuplicates() \
     .withColumn("location_id", expr("uuid()"))
 
-# === Build DimState ===
+# DIM STATE
 dim_state = df_flat.select(
     col("state_code"),
     col("state_date"),
@@ -192,7 +197,7 @@ dim_state = df_flat.select(
 ).dropDuplicates() \
  .withColumn("state_id", expr("uuid()"))
 
-# === Build DimDate ===
+# DIMDATE
 dim_date = df_flat.select(col("event_date")) \
     .withColumn("date", to_date("event_date")) \
     .select(
@@ -205,7 +210,7 @@ dim_date = df_flat.select(col("event_date")) \
     ).dropDuplicates() \
     .withColumn("date_id", expr("uuid()"))
 
-# === Prepare DimShipping ===
+# DIMSHIPPING
 df_shipping = df_flat.alias("d") \
     .join(dim_client.alias("c"),
           concat_ws("_", col("d.brand_code_alpha"), col("d.sign_code")) == col("c.client_key"),
@@ -239,7 +244,7 @@ dim_shipping = df_shipping.select(
     col("parcel_sequence")
 ).dropDuplicates(["shipping_id"]).where(col("shipping_id").isNotNull())
 
-# === Prepare FactShippingEvent ===
+# FACT SHIPPING EVENTS
 fact_shipping_event = df_flat.alias("d") \
     .join(dim_shipping.alias("s"),
           col("d.shipping_id") == col("s.shipping_id"),
@@ -258,7 +263,7 @@ fact_shipping_event = df_flat.alias("d") \
         col("dt.date_id")
     )
 
-# Run DQ checks after building all tables (checking key tables only for brevity)
+# checks on final tables
 dq_results += run_dq_checks(dim_client, "After Tables Build: DimClient")
 dq_results += run_dq_checks(dim_location, "After Tables Build: DimLocation")
 dq_results += run_dq_checks(dim_state, "After Tables Build: DimState")
@@ -266,7 +271,7 @@ dq_results += run_dq_checks(dim_date, "After Tables Build: DimDate")
 dq_results += run_dq_checks(dim_shipping, "After Tables Build: DimShipping")
 dq_results += run_dq_checks(fact_shipping_event, "After Tables Build: FactShippingEvent")
 
-# === Show schema and samples ===
+# just to preview tables when running the script
 print("DimClient")
 dim_client.show(5, truncate=False)
 
@@ -285,7 +290,7 @@ dim_shipping.show(5, truncate=False)
 print("FactShippingEvent")
 fact_shipping_event.show(5, truncate=False)
 
-# === Export all final tables as Parquet ===
+# WRITE PARQUETS TO /WAREHOUSE
 output_base = "/workspaces/inpost_analytics/warehouse"
 
 dim_client.write.mode("overwrite").parquet(f"{output_base}/DimClient")
@@ -295,7 +300,7 @@ dim_date.write.mode("overwrite").parquet(f"{output_base}/DimDate")
 dim_shipping.write.mode("overwrite").parquet(f"{output_base}/DimShipping")
 fact_shipping_event.write.mode("overwrite").parquet(f"{output_base}/FactShippingEvent")
 
-# === Write DQ report to CSV, appending previous records if exist ===
+# write dq checks report to etl/metadata
 dq_df = pd.DataFrame(dq_results)
 if os.path.exists(metadata_path):
     existing_df = pd.read_csv(metadata_path)
@@ -303,14 +308,13 @@ if os.path.exists(metadata_path):
 else:
     combined_df = dq_df
 
-# Sort descending by timestamp
 combined_df['timestamp'] = pd.to_datetime(combined_df['timestamp'])
 combined_df = combined_df.sort_values(by='timestamp', ascending=False)
 
-# Save back to CSV
+# metadata csv write
 combined_df.to_csv(metadata_path, index=False)
 
-print(f"Data Quality report appended to {metadata_path}")
+print(f"Job ran! Data Quality report in {metadata_path}")
 
-# === Stop Spark session ===
+# stop spark
 spark.stop()
