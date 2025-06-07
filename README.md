@@ -51,7 +51,6 @@ The data model closely follows the hierarchy and structure of the original JSON 
 
 * **DimDate:** Standard date dimension to support time-based analysis, with year, month, day, quarter, and weekday attributes.
 
-Got it! Here’s a more accurate and concise **Data Quality** section reflecting your actual DQ checks:
 
 ## Data Quality
 
