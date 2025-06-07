@@ -8,6 +8,7 @@ __pycache__/
 *.parquet
 *.log
 *.db
+*.src
 
 # Ignore notebook checkpoints
 .ipynb_checkpoints/
