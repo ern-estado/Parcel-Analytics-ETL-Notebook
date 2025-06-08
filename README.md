@@ -58,6 +58,7 @@ The data model closely follows the hierarchy and structure of the original JSON 
 * **DimDate:** Standard date dimension to support time-based analysis, with year, month, day, quarter, and weekday attributes.
 
 Note: You will not see the actual parquet files with tables in the repo, only in the codespace
+IMPORTANT: primary keys were generated with UUID
 
 
 ## Data Quality
