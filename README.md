@@ -1,5 +1,11 @@
 # Inpost Senior Data Analyst Test Assignment - Ernest Nadosha
 
+## How to Run
+
+1. Press the green Code button -> codespaces -> inp -- this is the active codespace where the whole solution was developed
+2. Run the ETL pipeline by executing `etl/main.py` 
+3. Open and RunAll `/notebooks/main_report.ipynb` 
+
 ## Context
 
 Hello and thank you for the chance to try this out. 
@@ -60,9 +66,3 @@ The `main.py` script includes simple data quality (DQ) checks designed to ensure
 * They check for **null values** in the first three columns of each DataFrame.
 * Each check returns a pass/fail status along with details such as row counts or null counts.
 * The results of these checks are collected and saved into the `metadata` folder every time the ETL script runs.
-
-
-## How to Run
-
-1. Run the ETL pipeline by executing `etl/main.py` 
-2. Open and RunAll `/notebooks/main_report.ipynb` 
