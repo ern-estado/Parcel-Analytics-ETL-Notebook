@@ -1,10 +1,18 @@
 # Inpost Senior Data Analyst Test Assignment - Ernest Nadosha
 
-## How to Run
+## README (for viewers)
+
+1. Main jupyer notebook with metrics and calculation logic: `/notebooks/main_report.ipynb`
+2. ETL logic (parsing json, building tables): `etl/main.py`
+3. Data Model and other important info: down below
+   
+
+## How to Run (for repo owner/for presentation)
 
 1. Press the green Code button -> codespaces -> inp -- this is the active codespace where the whole solution was developed
 2. Run the ETL pipeline by executing `etl/main.py` 
-3. Open and RunAll `/notebooks/main_report.ipynb` 
+3. Open and RunAll `/notebooks/main_report.ipynb`
+   
 
 ## Context
 
