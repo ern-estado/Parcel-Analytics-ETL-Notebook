@@ -1,8 +1,8 @@
-# Inpost Senior Data Analyst Test Assignment - Ernest Nadosha
+# Parcel delivery performance ETL + Notebook EDA 
 
 ## README (for viewers)
 
-1. Main jupyer notebook with metrics and calculation logic: `/notebooks/main_report.ipynb`
+1. Main jupyter notebook with metrics and calculation logic: `/notebooks/main_report.ipynb`
 2. ETL logic (parsing json, building tables): `etl/main.py`
 3. Data Model and other important info: down below
    
@@ -15,8 +15,6 @@
    
 
 ## Context
-
-Hello and thank you for the chance to try this out. 
 
 This repository contains the entire solution to calculating the metrics in the test assignment. 
 
